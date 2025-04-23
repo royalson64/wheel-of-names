@@ -1,46 +1,175 @@
-# Getting Started with Create React App
+# Wheel of Names
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, interactive web application for randomly selecting names from a list, featuring a visually appealing spinning wheel animation. Available as a Progressive Web App for desktop installation.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Dynamic Name Input**
+  - Two-column layout for efficient name entry
+  - Support for up to 30 name entries
+  - Count multiplier (1-10) for each name to adjust probability
+  - Real-time input validation and state management
 
-### `npm start`
+- **Flexible Layout**
+  - Toggle between portrait and landscape modes
+  - Portrait: Traditional vertical layout
+  - Landscape: Two-column view with names on left, wheel on right
+  - Sticky wheel position in landscape mode
+  - Responsive design for all screen sizes
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Interactive Wheel**
+  - Smooth spinning animation with natural deceleration
+  - Visual feedback during spin and selection
+  - Consistent 5-7 full rotations before landing
+  - Precise pointer alignment with selected section
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Winner Display**
+  - Prominent winner announcement with animation
+  - History tracking of previous winners
+  - Gradient-styled history cards showing last 2 winners
 
-### `npm test`
+- **Progressive Web App**
+  - Install as a desktop application
+  - Offline functionality
+  - Fast loading and smooth performance
+  - Automatic updates
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Technical Implementation
 
-### `npm run build`
+### Core Components
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **App.tsx**
+   - Main application container
+   - State management for names, winners, and spinning status
+   - Layout toggle and responsive design
+   - Input handling and validation
+   - Layout and styling using Emotion (CSS-in-JS)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. **Wheel Component**
+   - Custom wheel rendering and animation
+   - Canvas-based drawing for smooth rotation
+   - Physics-based spinning mechanics
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Layout Modes
 
-### `npm run eject`
+1. **Portrait Mode**
+   - Traditional vertical layout
+   - Names input at the top
+   - Wheel in the center
+   - Winner display and history below
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+2. **Landscape Mode**
+   - Two-column layout for efficient space usage
+   - Names input section on the left
+   - Wheel and results on the right
+   - Sticky wheel position while scrolling
+   - Optimized for widescreen displays
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Random Selection Process
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+The random selection process is implemented with multiple layers to ensure fairness and proper visual feedback:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+1. **Name Pool Generation**
+   ```typescript
+   const getValidNames = () => {
+     return entries
+       .filter(entry => entry.name.trim() !== '')
+       .flatMap(entry => Array(entry.count).fill(entry.name));
+   };
+   ```
+   - Filters out empty entries
+   - Expands entries based on their count (1-10)
+   - Creates a flat array where names appear multiple times based on their count
 
-## Learn More
+2. **Random Selection**
+   - Uses JavaScript's built-in Math.random() for initial randomization
+   - The wheel spins for 5-7 complete rotations (randomized)
+   - Final position is calculated using:
+     ```javascript
+     const finalAngle = (
+       360 * completeRotations + 
+       (selectedIndex * (360 / totalNames))
+     );
+     ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. **Probability Distribution**
+   - Each name's probability is proportional to its count
+   - Example: If "Alice" has count=3 and "Bob" has count=1
+     - Alice appears 3 times in the pool
+     - Bob appears 1 time in the pool
+     - P(Alice) = 3/4, P(Bob) = 1/4
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Styling and UX
+
+1. **Modern UI Elements**
+   - Gradient backgrounds for visual depth
+   - Smooth transitions and hover effects
+   - Responsive layout with mobile optimization
+   - Subtle shadows and rounded corners
+   - Layout toggle with intuitive icons
+
+2. **Interactive Elements**
+   - Input fields with focus states
+   - Disabled states during spinning
+   - Hover animations on cards and buttons
+   - Visual separator between input columns
+   - Smooth layout transitions
+
+3. **Winner Display**
+   - Fade-in animation for winner announcement
+   - Color-coded history cards
+   - Gradient backgrounds for visual hierarchy
+   - Optimized positioning in both layouts
+
+## Installation
+
+### As a Web App
+1. Visit the application URL in Chrome or Edge
+2. Click the install icon in the address bar
+3. Follow the installation prompts
+4. Launch from your Applications folder or dock
+
+### For Development
+1. Clone the repository
+2. Run `npm install`
+3. Run `npm start`
+4. Open [http://localhost:3000](http://localhost:3000)
+
+## Usage
+
+1. Choose your preferred layout (portrait/landscape)
+2. Enter names in the input fields
+3. Optionally adjust the count (1-10) for each name
+4. Click "Spin the Wheel!" to start
+5. Watch the wheel spin and gradually slow down
+6. The winner is displayed with a celebration animation
+7. Previous winners are shown in the history section
+
+## Technical Requirements
+
+- React 18+
+- Emotion for styled components
+- Modern browser with CSS Grid support
+- JavaScript enabled
+- Service Workers for PWA functionality
+
+## Implementation Notes
+
+- The wheel's spinning animation uses requestAnimationFrame for smooth performance
+- State updates are batched for efficiency
+- The UI is fully responsive and works on both desktop and mobile devices
+- Input validation prevents empty names and ensures count stays within 1-10
+- The history feature maintains the last 3 winners (current + 2 previous)
+- PWA implementation with service worker for offline capability
+- Smooth layout transitions using CSS Grid and Flexbox
+
+## Future Enhancements
+
+- Export/import name lists
+- Custom wheel colors and themes
+- Sound effects and additional animations
+- Statistics tracking for winners
+- Multiple wheel configurations
+- Additional layout options
+- Touch gesture support for mobile
+- Cloud sync for name lists

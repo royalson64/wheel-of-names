@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#4A90E2"/>
+  
+  <!-- Wheel sections -->
+  <path d="M256 16 L256 496 A240 240 0 0 0 256 16" fill="#357ABD"/>
+  <path d="M16 256 L496 256 A240 240 0 0 0 16 256" fill="#2C6AA6"/>
+  
+  <!-- Center circle -->
+  <circle cx="256" cy="256" r="60" fill="white"/>
+  
+  <!-- Pointer triangle -->
+  <path d="M256 40 L226 100 L286 100 Z" fill="white"/>
+  
+  <!-- Inner decorative ring -->
+  <circle cx="256" cy="256" r="180" stroke="white" stroke-width="8" fill="none" stroke-dasharray="20,10"/>
+</svg> 
