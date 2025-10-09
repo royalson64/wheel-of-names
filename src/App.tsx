@@ -1,25 +1,52 @@
-import React, { useState } from 'react';
-import styled from '@emotion/styled';
-import './App.css';
-import Wheel from './components/Wheel';
+import React, { useState } from "react";
+import styled from "@emotion/styled";
+import "./App.css";
+import Wheel from "./components/Wheel";
+import DancingBear from "./components/DancingBear";
 
 const Container = styled.div<{ isLandscape: boolean; isDark: boolean }>`
   text-align: center;
-  padding: 1rem;
-  max-width: ${props => props.isLandscape ? '1600px' : '1200px'};
+  padding: 2rem 1rem;
+  max-width: ${(props) => (props.isLandscape ? "1600px" : "1200px")};
   margin: 0 auto;
   min-height: 100vh;
-  background-color: ${props => props.isDark ? '#1a1a1a' : '#ffffff'};
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  color: ${props => props.isDark ? '#ffffff' : '#000000'};
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: ${(props) =>
+    props.isDark
+      ? "linear-gradient(135deg, #1a2332 0%, #2d3748 100%)"
+      : "linear-gradient(135deg, #2c5f7c 0%, #3a7d8f 100%)"};
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color: ${(props) => (props.isDark ? "#ffffff" : "#ffffff")};
+  transition: background 0.5s ease, color 0.3s ease;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) =>
+      props.isDark
+        ? "radial-gradient(circle at 20% 50%, rgba(74, 144, 226, 0.08), transparent 50%), radial-gradient(circle at 80% 80%, rgba(80, 200, 120, 0.06), transparent 50%)"
+        : "radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1), transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08), transparent 50%)"};
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const Header = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 1.5rem;
+  position: relative;
 
   @media (max-width: 768px) {
     margin-bottom: 1rem;
@@ -27,24 +54,61 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1<{ isDark: boolean }>`
-  color: #1a73e8;
-  font-size: 2.5rem;
-  
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  animation: titleGlow 3s ease-in-out infinite;
+
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 
-  font-weight: 700;
-  background: ${props => props.isDark ? 
-    'linear-gradient(135deg, #60a5fa, #3b82f6)' : 
-    'linear-gradient(135deg, #1a73e8, #4285f4)'};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.02em;
-  margin: 0;
+  @keyframes titleGlow {
+    0%,
+    100% {
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+    }
+    50% {
+      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4));
+    }
+  }
+`;
+
+const Logo = styled.div`
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  animation: logoSpin 20s linear infinite;
+
+  @keyframes logoSpin {
+    0% {
+      transform: translateY(-50%) rotate(0deg);
+    }
+    100% {
+      transform: translateY(-50%) rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 50px;
+    height: 50px;
+  }
 `;
 
 const ControlsGroup = styled.div`
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -52,56 +116,88 @@ const ControlsGroup = styled.div`
 
 const IconButton = styled.button<{ isDark?: boolean }>`
   padding: 0.5rem;
-  background: ${props => props.isDark ? '#2d2d2d' : '#f8f9fa'};
-  border: 2px solid ${props => props.isDark ? '#404040' : '#e8eaed'};
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   cursor: pointer;
-  color: ${props => props.isDark ? '#e0e0e0' : '#5f6368'};
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  width: 40px;
-  height: 40px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 44px;
+  height: 44px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   &:hover {
-    background: ${props => props.isDark ? '#404040' : '#f1f3f4'};
-    border-color: ${props => props.isDark ? '#525252' : '#dadce0'};
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
   }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 `;
 
 const MainContent = styled.div<{ isLandscape: boolean }>`
-  display: ${props => props.isLandscape ? 'grid' : 'flex'};
-  ${props => props.isLandscape ? `
+  display: ${(props) => (props.isLandscape ? "grid" : "flex")};
+  ${(props) =>
+    props.isLandscape
+      ? `
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     align-items: start;
-  ` : `
+  `
+      : `
     flex-direction: column;
     gap: 1.5rem;
   `}
 `;
 
 const InputSection = styled.div<{ isLandscape: boolean; isDark: boolean }>`
-  max-width: ${props => props.isLandscape ? 'none' : '900px'};
-  margin: ${props => props.isLandscape ? '0 auto 3rem' : '0 auto'};
-  padding: 1.5rem;
-  background: ${props => props.isDark ? '#2d2d2d' : '#ffffff'};
-  border-radius: 16px;
-  box-shadow: 0 4px 20px ${props => props.isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.08)'};
+  max-width: ${(props) => (props.isLandscape ? "none" : "900px")};
+  margin: ${(props) => (props.isLandscape ? "0 auto 3rem" : "0 auto")};
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
   gap: 0;
   align-items: start;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent
+    );
+  }
 
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 1.5rem;
     grid-template-columns: 1fr;
     .separator {
       display: none;
@@ -113,7 +209,9 @@ const WheelSection = styled.div<{ isLandscape: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  ${props => props.isLandscape && `
+  ${(props) =>
+    props.isLandscape &&
+    `
     position: sticky;
     top: 2rem;
   `}
@@ -137,10 +235,11 @@ const ColumnSeparator = styled.div`
   background: linear-gradient(
     to bottom,
     transparent,
-    #e8eaed 10%,
-    #e8eaed 90%,
+    rgba(255, 255, 255, 0.3) 10%,
+    rgba(255, 255, 255, 0.3) 90%,
     transparent
   );
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 `;
 
 const InputWrapper = styled.div`
@@ -163,23 +262,33 @@ const InputGroup = styled.div`
 
 const Input = styled.input<{ isDark: boolean }>`
   padding: 0.875rem 1rem;
-  border: 2px solid ${props => props.isDark ? '#404040' : '#e8eaed'};
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.2s ease;
-  background: ${props => props.isDark ? '#1a1a1a' : '#f8f9fa'};
-  color: ${props => props.isDark ? '#ffffff' : 'inherit'};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
 
   &:focus {
     outline: none;
-    border-color: #1a73e8;
-    background: ${props => props.isDark ? '#2d2d2d' : '#ffffff'};
-    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2),
+      0 0 0 4px rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
   }
 
   &:disabled {
-    background-color: ${props => props.isDark ? '#262626' : '#f1f3f4'};
+    background-color: rgba(255, 255, 255, 0.1);
     cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
@@ -188,15 +297,16 @@ const NameInput = styled(Input)`
 `;
 
 const CountInput = styled(Input)`
-  width: 80px;
+  width: 70px;
   text-align: center;
+  font-weight: 700;
   /* Remove default number input spinners */
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  &[type=number] {
+  &[type="number"] {
     -moz-appearance: textfield;
   }
 `;
@@ -209,22 +319,24 @@ const CountInputWrapper = styled.div`
 
 const CountButton = styled.button<{ isDark?: boolean }>`
   position: absolute;
-  padding: 0.25rem;
-  background: ${props => props.isDark ? '#404040' : '#f1f3f4'};
-  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 6px;
-  color: ${props => props.isDark ? '#e0e0e0' : '#5f6368'};
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  transition: all 0.2s ease;
+  width: 22px;
+  height: 22px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: ${props => props.isDark ? '#525252' : '#e8eaed'};
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
   }
 
   &:active {
@@ -232,72 +344,106 @@ const CountButton = styled.button<{ isDark?: boolean }>`
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
   }
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+    display: block;
   }
 
   &.decrease {
-    left: 6px;
+    left: 5px;
   }
 
   &.increase {
-    right: 6px;
+    right: 5px;
   }
 `;
 
 const InputLabel = styled.span`
-  color: #5f6368;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   position: absolute;
   top: -18px;
   left: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 `;
 
-const Button = styled.button<{ variant?: 'primary' | 'spin' }>`
-  padding: ${props => props.variant === 'spin' ? '0.875rem 1.75rem' : '0.75rem 1.25rem'};
-  background: ${props => {
-    if (props.variant === 'spin') {
-      return 'linear-gradient(135deg, #34a853 0%, #1e8e3e 100%)';
+const Button = styled.button<{ variant?: "primary" | "spin" }>`
+  padding: ${(props) =>
+    props.variant === "spin" ? "1rem 2.5rem" : "0.875rem 1.5rem"};
+  background: ${(props) => {
+    if (props.variant === "spin") {
+      return "linear-gradient(135deg, #4A90E2 0%, #50C878 100%)";
     }
-    return 'linear-gradient(135deg, #1a73e8 0%, #1557b0 100%)';
+    return "linear-gradient(135deg, #50C878 0%, #87CEEB 100%)";
   }};
   color: white;
-  border: none;
-  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
   cursor: pointer;
-  font-size: ${props => props.variant === 'spin' ? '1.125rem' : '1rem'};
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px ${props => props.variant === 'spin' ? 'rgba(30, 142, 62, 0.3)' : 'rgba(26, 115, 232, 0.3)'};
+  font-size: ${(props) => (props.variant === "spin" ? "1.25rem" : "1rem")};
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   margin: 1rem auto;
   display: block;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
 
   @media (max-width: 768px) {
-    padding: ${props => props.variant === 'spin' ? '0.75rem 1.5rem' : '0.625rem 1rem'};
-    font-size: ${props => props.variant === 'spin' ? '1rem' : '0.875rem'};
+    padding: ${(props) =>
+      props.variant === "spin" ? "0.875rem 2rem" : "0.75rem 1.25rem"};
+    font-size: ${(props) =>
+      props.variant === "spin" ? "1.125rem" : "0.875rem"};
   }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px ${props => props.variant === 'spin' ? 'rgba(30, 142, 62, 0.4)' : 'rgba(26, 115, 232, 0.4)'};
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: translateY(-1px) scale(0.98);
   }
 
   &:disabled {
-    background: #dadce0;
+    background: rgba(255, 255, 255, 0.2);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    opacity: 0.5;
   }
 `;
 
@@ -307,56 +453,106 @@ const AddButton = styled(Button)`
   margin: 1rem auto 0;
 `;
 
-const WinnerDisplay = styled.div`
+const WinnerDisplay = styled.div<{ backgroundColor: string }>`
   margin-top: 1.5rem;
-  padding: 1.25rem;
-  background: linear-gradient(135deg, #34a853 0%, #1e8e3e 100%);
+  padding: 2rem;
+  background: linear-gradient(
+    135deg,
+    ${(props) => props.backgroundColor} 0%,
+    ${(props) => props.backgroundColor}dd 100%
+  );
+  backdrop-filter: blur(20px);
   color: white;
-  border-radius: 16px;
-  animation: fadeIn 0.5s ease;
-  box-shadow: 0 4px 20px rgba(30, 142, 62, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  animation: winnerReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
 
   h2 {
-    font-size: 1.5rem;
+    font-size: 2rem;
     margin: 0;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 1;
   }
 
   @media (max-width: 768px) {
     margin-top: 1rem;
-    padding: 1rem;
-    
+    padding: 1.5rem;
+
     h2 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
     }
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes winnerReveal {
+    0% {
+      opacity: 0;
+      transform: translateY(30px) scale(0.9);
+    }
+    50% {
+      transform: translateY(-10px) scale(1.05);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
   }
 `;
 
 const HistoryDisplay = styled.div`
   margin-top: 1.5rem;
-  padding: 1.25rem;
-  background: #f8f9fa;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
   @media (max-width: 768px) {
     margin-top: 1rem;
-    padding: 1rem;
+    padding: 1.25rem;
   }
 `;
 
 const HistoryTitle = styled.h3`
-  color: #5f6368;
+  color: rgba(255, 255, 255, 0.95);
   margin: 0 0 1rem 0;
   font-size: 1.125rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
 const HistoryList = styled.div`
@@ -366,32 +562,31 @@ const HistoryList = styled.div`
 `;
 
 const HistoryItem = styled.div<{ index: number }>`
-  padding: 1rem 1.25rem;
-  background: ${props => {
+  padding: 1rem 1.5rem;
+  background: ${(props) => {
     const colors = [
-      'linear-gradient(135deg, #34a853 0%, #1e8e3e 100%)',
-      'linear-gradient(135deg, #1a73e8 0%, #1557b0 100%)',
-      'linear-gradient(135deg, #fbbc04 0%, #f29900 100%)'
+      "linear-gradient(135deg, #4A90E2 0%, #50C878 100%)",
+      "linear-gradient(135deg, #50C878 0%, #87CEEB 100%)",
+      "linear-gradient(135deg, #708090 0%, #4A90E2 100%)",
     ];
-    return colors[props.index] || '#e8eaed';
+    return colors[props.index] || "rgba(255, 255, 255, 0.2)";
   }};
-  color: ${props => props.index === 2 ? '#202124' : 'white'};
-  border-radius: 12px;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
   font-size: 1rem;
-  opacity: ${props => 1 - props.index * 0.1};
-  transform: scale(${props => 1 - props.index * 0.02});
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px ${props => {
-    const shadows = [
-      'rgba(30, 142, 62, 0.2)',
-      'rgba(26, 115, 232, 0.2)',
-      'rgba(251, 188, 4, 0.2)'
-    ];
-    return shadows[props.index] || 'rgba(0, 0, 0, 0.1)';
-  }};
+  font-weight: 600;
+  opacity: ${(props) => 1 - props.index * 0.15};
+  transform: scale(${(props) => 1 - props.index * 0.03});
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
   &:hover {
-    transform: scale(${props => (1 - props.index * 0.02) * 1.02});
+    transform: scale(${(props) => (1 - props.index * 0.03) * 1.05})
+      translateX(4px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
   }
 `;
 
@@ -402,50 +597,60 @@ interface NameEntry {
 
 function App() {
   const [entries, setEntries] = useState<NameEntry[]>(
-    Array(10).fill({ name: '', count: 1 })
+    Array(10).fill({ name: "", count: 1 })
   );
   const [winner, setWinner] = useState<string | null>(null);
+  const [winnerColor, setWinnerColor] = useState<string>("#34a853");
   const [isSpinning, setIsSpinning] = useState(false);
   const [winnerHistory, setWinnerHistory] = useState<string[]>([]);
   const [isLandscape, setIsLandscape] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [showBear, setShowBear] = useState(false);
 
   const handleInputChange = (
     index: number,
-    field: 'name' | 'count',
+    field: "name" | "count",
     value: string
   ) => {
-    setEntries(prev => prev.map((item, i) => {
-      if (i === index) {
-        if (field === 'count') {
-          const count = parseInt(value) || 1;
-          return { ...item, count: Math.max(1, Math.min(10, count)) };
+    setEntries((prev) =>
+      prev.map((item, i) => {
+        if (i === index) {
+          if (field === "count") {
+            const count = parseInt(value) || 1;
+            return { ...item, count: Math.max(1, Math.min(10, count)) };
+          }
+          return { ...item, [field]: value };
         }
-        return { ...item, [field]: value };
-      }
-      return item;
-    }));
+        return item;
+      })
+    );
   };
 
   const handleCountChange = (index: number, value: number) => {
-    setEntries(prev => prev.map((item, i) => {
-      if (i === index) {
-        return { ...item, count: Math.max(1, Math.min(10, value)) };
-      }
-      return item;
-    }));
+    setEntries((prev) =>
+      prev.map((item, i) => {
+        if (i === index) {
+          return { ...item, count: Math.max(1, Math.min(10, value)) };
+        }
+        return item;
+      })
+    );
   };
 
   const handleAddMoreInputs = () => {
     if (entries.length < 30) {
-      setEntries(prev => [...prev, { name: '', count: 1 }, { name: '', count: 1 }]);
+      setEntries((prev) => [
+        ...prev,
+        { name: "", count: 1 },
+        { name: "", count: 1 },
+      ]);
     }
   };
 
   const getValidNames = () => {
     return entries
-      .filter(entry => entry.name.trim() !== '')
-      .flatMap(entry => Array(entry.count).fill(entry.name));
+      .filter((entry) => entry.name.trim() !== "")
+      .flatMap((entry) => Array(entry.count).fill(entry.name));
   };
 
   const handleSpin = () => {
@@ -455,10 +660,13 @@ function App() {
     setWinner(null);
   };
 
-  const handleSpinComplete = (winner: string) => {
+  const handleSpinComplete = (winner: string, color: string) => {
     setWinner(winner);
-    setWinnerHistory(prev => [winner, ...prev.slice(0, 2)]);
+    setWinnerColor(color);
+    setWinnerHistory((prev) => [winner, ...prev.slice(0, 2)]);
     setIsSpinning(false);
+    // Trigger the dancing bear briefly when a winner is selected
+    setShowBear(true);
   };
 
   const validNames = getValidNames();
@@ -466,37 +674,217 @@ function App() {
   return (
     <Container isLandscape={isLandscape} isDark={isDark}>
       <Header>
-        <Title isDark={isDark}>Wheel of Names</Title>
+        <Logo>
+          <svg
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient
+                id="logoGradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style={{ stopColor: "#4A90E2", stopOpacity: 1 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: "#50C878", stopOpacity: 1 }}
+                />
+              </linearGradient>
+              <linearGradient
+                id="logoGradient2"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style={{ stopColor: "#50C878", stopOpacity: 1 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: "#708090", stopOpacity: 1 }}
+                />
+              </linearGradient>
+              <linearGradient
+                id="logoGradient3"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style={{ stopColor: "#708090", stopOpacity: 1 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: "#87CEEB", stopOpacity: 1 }}
+                />
+              </linearGradient>
+              <linearGradient
+                id="logoGradient4"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style={{ stopColor: "#87CEEB", stopOpacity: 1 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: "#E57373", stopOpacity: 1 }}
+                />
+              </linearGradient>
+              <filter id="logoShadow">
+                <feDropShadow
+                  dx="0"
+                  dy="2"
+                  stdDeviation="3"
+                  floodOpacity="0.3"
+                />
+              </filter>
+            </defs>
+            {/* Outer circle */}
+            <circle
+              cx="50"
+              cy="50"
+              r="48"
+              fill="white"
+              opacity="0.2"
+              filter="url(#logoShadow)"
+            />
+            {/* Wheel segments */}
+            <path
+              d="M 50 50 L 50 2 A 48 48 0 0 1 84 16 Z"
+              fill="url(#logoGradient1)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 84 16 A 48 48 0 0 1 98 50 Z"
+              fill="url(#logoGradient2)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 98 50 A 48 48 0 0 1 84 84 Z"
+              fill="url(#logoGradient3)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 84 84 A 48 48 0 0 1 50 98 Z"
+              fill="url(#logoGradient4)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 50 98 A 48 48 0 0 1 16 84 Z"
+              fill="url(#logoGradient1)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 16 84 A 48 48 0 0 1 2 50 Z"
+              fill="url(#logoGradient2)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 2 50 A 48 48 0 0 1 16 16 Z"
+              fill="url(#logoGradient3)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 50 50 L 16 16 A 48 48 0 0 1 50 2 Z"
+              fill="url(#logoGradient4)"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            {/* Center circle */}
+            <circle
+              cx="50"
+              cy="50"
+              r="12"
+              fill="white"
+              stroke="rgba(0,0,0,0.2)"
+              strokeWidth="1"
+            />
+            <circle cx="50" cy="50" r="6" fill="#4A90E2" />
+          </svg>
+        </Logo>
+        <Title isDark={isDark} aria-label="Wheel of Names">
+          {"Wheel of Names".split("").map((char, i) => {
+            if (char === " ") {
+              return (
+                <span
+                  key={`space-${i}`}
+                  className="title-space"
+                  aria-hidden="true"
+                >
+                  {"\u00A0"}
+                </span>
+              );
+            }
+            return (
+              <span
+                key={i}
+                className="title-char"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                {char}
+                <span className="sparkle" aria-hidden="true" />
+              </span>
+            );
+          })}
+        </Title>
         <ControlsGroup>
-          <IconButton 
+          <IconButton
             onClick={() => setIsLandscape(!isLandscape)}
-            aria-label={isLandscape ? "Switch to portrait mode" : "Switch to landscape mode"}
+            aria-label={
+              isLandscape
+                ? "Switch to portrait mode"
+                : "Switch to landscape mode"
+            }
             isDark={isDark}
           >
             {isLandscape ? (
               <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                <path d="M7 7h10v10H7z"/>
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
+                <path d="M7 7h10v10H7z" />
               </svg>
             ) : (
               <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                <path d="M7 7h4v10H7zm6 0h4v10h-4z"/>
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
+                <path d="M7 7h4v10H7zm6 0h4v10h-4z" />
               </svg>
             )}
           </IconButton>
           <IconButton
             onClick={() => setIsDark(!isDark)}
-            aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+            aria-label={
+              isDark ? "Switch to light theme" : "Switch to dark theme"
+            }
             isDark={isDark}
           >
             {isDark ? (
               <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
               </svg>
             ) : (
               <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
               </svg>
             )}
           </IconButton>
@@ -506,134 +894,157 @@ function App() {
       <MainContent isLandscape={isLandscape}>
         <InputSection isLandscape={isLandscape} isDark={isDark}>
           <InputsContainer>
-            {entries.slice(0, Math.ceil(entries.length / 2)).map((entry, index) => (
-              <InputWrapper key={index}>
-                <InputGroup>
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <InputLabel>Name</InputLabel>
+            {entries
+              .slice(0, Math.ceil(entries.length / 2))
+              .map((entry, index) => (
+                <InputWrapper key={index}>
+                  <InputGroup>
                     <NameInput
                       type="text"
                       value={entry.name}
-                      onChange={(e) => handleInputChange(index, 'name', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(index, "name", e.target.value)
+                      }
                       placeholder="Enter name"
                       disabled={isSpinning}
                       isDark={isDark}
                     />
-                  </div>
-                  <CountInputWrapper>
-                    <InputLabel>Count</InputLabel>
-                    <CountInput
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={entry.count}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        if (value === '') {
-                          handleCountChange(index, 1);
-                        } else {
-                          handleCountChange(index, parseInt(value));
+                    <CountInputWrapper>
+                      <CountInput
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={entry.count}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, "");
+                          if (value === "") {
+                            handleCountChange(index, 1);
+                          } else {
+                            handleCountChange(index, parseInt(value));
+                          }
+                        }}
+                        disabled={isSpinning}
+                        isDark={isDark}
+                        placeholder="#"
+                      />
+                      <CountButton
+                        className="decrease"
+                        onClick={() =>
+                          handleCountChange(index, entry.count - 1)
                         }
-                      }}
-                      disabled={isSpinning}
-                      isDark={isDark}
-                    />
-                    <CountButton
-                      className="decrease"
-                      onClick={() => handleCountChange(index, entry.count - 1)}
-                      disabled={entry.count <= 1 || isSpinning}
-                      isDark={isDark}
-                      aria-label="Decrease count"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13H5v-2h14v2z"/>
-                      </svg>
-                    </CountButton>
-                    <CountButton
-                      className="increase"
-                      onClick={() => handleCountChange(index, entry.count + 1)}
-                      disabled={entry.count >= 10 || isSpinning}
-                      isDark={isDark}
-                      aria-label="Increase count"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                      </svg>
-                    </CountButton>
-                  </CountInputWrapper>
-                </InputGroup>
-              </InputWrapper>
-            ))}
+                        disabled={entry.count <= 1 || isSpinning}
+                        isDark={isDark}
+                        aria-label="Decrease count"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 13H5v-2h14v2z" />
+                        </svg>
+                      </CountButton>
+                      <CountButton
+                        className="increase"
+                        onClick={() =>
+                          handleCountChange(index, entry.count + 1)
+                        }
+                        disabled={entry.count >= 10 || isSpinning}
+                        isDark={isDark}
+                        aria-label="Increase count"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                      </CountButton>
+                    </CountInputWrapper>
+                  </InputGroup>
+                </InputWrapper>
+              ))}
           </InputsContainer>
 
           <ColumnSeparator className="separator" />
 
           <InputsContainer>
-            {entries.slice(Math.ceil(entries.length / 2)).map((entry, index) => (
-              <InputWrapper key={index + Math.ceil(entries.length / 2)}>
-                <InputGroup>
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <InputLabel>Name</InputLabel>
+            {entries
+              .slice(Math.ceil(entries.length / 2))
+              .map((entry, index) => (
+                <InputWrapper key={index + Math.ceil(entries.length / 2)}>
+                  <InputGroup>
                     <NameInput
                       type="text"
                       value={entry.name}
-                      onChange={(e) => handleInputChange(index + Math.ceil(entries.length / 2), 'name', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          index + Math.ceil(entries.length / 2),
+                          "name",
+                          e.target.value
+                        )
+                      }
                       placeholder="Enter name"
                       disabled={isSpinning}
                       isDark={isDark}
                     />
-                  </div>
-                  <CountInputWrapper>
-                    <InputLabel>Count</InputLabel>
-                    <CountInput
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={entry.count}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        if (value === '') {
-                          handleCountChange(index + Math.ceil(entries.length / 2), 1);
-                        } else {
-                          handleCountChange(index + Math.ceil(entries.length / 2), parseInt(value));
+                    <CountInputWrapper>
+                      <CountInput
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={entry.count}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, "");
+                          if (value === "") {
+                            handleCountChange(
+                              index + Math.ceil(entries.length / 2),
+                              1
+                            );
+                          } else {
+                            handleCountChange(
+                              index + Math.ceil(entries.length / 2),
+                              parseInt(value)
+                            );
+                          }
+                        }}
+                        disabled={isSpinning}
+                        isDark={isDark}
+                        placeholder="#"
+                      />
+                      <CountButton
+                        className="decrease"
+                        onClick={() =>
+                          handleCountChange(
+                            index + Math.ceil(entries.length / 2),
+                            entry.count - 1
+                          )
                         }
-                      }}
-                      disabled={isSpinning}
-                      isDark={isDark}
-                    />
-                    <CountButton
-                      className="decrease"
-                      onClick={() => handleCountChange(index + Math.ceil(entries.length / 2), entry.count - 1)}
-                      disabled={entry.count <= 1 || isSpinning}
-                      isDark={isDark}
-                      aria-label="Decrease count"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13H5v-2h14v2z"/>
-                      </svg>
-                    </CountButton>
-                    <CountButton
-                      className="increase"
-                      onClick={() => handleCountChange(index + Math.ceil(entries.length / 2), entry.count + 1)}
-                      disabled={entry.count >= 10 || isSpinning}
-                      isDark={isDark}
-                      aria-label="Increase count"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                      </svg>
-                    </CountButton>
-                  </CountInputWrapper>
-                </InputGroup>
-              </InputWrapper>
-            ))}
+                        disabled={entry.count <= 1 || isSpinning}
+                        isDark={isDark}
+                        aria-label="Decrease count"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 13H5v-2h14v2z" />
+                        </svg>
+                      </CountButton>
+                      <CountButton
+                        className="increase"
+                        onClick={() =>
+                          handleCountChange(
+                            index + Math.ceil(entries.length / 2),
+                            entry.count + 1
+                          )
+                        }
+                        disabled={entry.count >= 10 || isSpinning}
+                        isDark={isDark}
+                        aria-label="Increase count"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                      </CountButton>
+                    </CountInputWrapper>
+                  </InputGroup>
+                </InputWrapper>
+              ))}
           </InputsContainer>
 
           {entries.length < 30 && (
-            <AddButton 
-              onClick={handleAddMoreInputs} 
-              disabled={isSpinning}
-            >
+            <AddButton onClick={handleAddMoreInputs} disabled={isSpinning}>
               Add More Names
             </AddButton>
           )}
@@ -646,35 +1057,34 @@ function App() {
               isSpinning={isSpinning}
               onSpinComplete={handleSpinComplete}
             />
-            <Button 
-              variant="spin" 
-              onClick={handleSpin}
-              disabled={isSpinning}
-            >
-              {isSpinning ? 'Spinning...' : 'Spin the Wheel!'}
+            <Button variant="spin" onClick={handleSpin} disabled={isSpinning}>
+              {isSpinning ? "Spinning..." : "Spin the Wheel!"}
             </Button>
 
             {winner && (
               <>
-                <WinnerDisplay>
+                <WinnerDisplay backgroundColor={winnerColor}>
                   <h2>🎉 Winner: {winner} 🎉</h2>
                 </WinnerDisplay>
                 {winnerHistory.length > 1 && (
                   <HistoryDisplay>
-                    <HistoryTitle>Previous Winners:</HistoryTitle>
+                    <HistoryTitle>Previous Winners</HistoryTitle>
                     <HistoryList>
-                      {winnerHistory.map((historyWinner, index) => (
-                        index > 0 && (
-                          <HistoryItem key={index} index={index}>
-                            {index === 1 ? '2nd' : '3rd'} last winner: {historyWinner}
-                          </HistoryItem>
-                        )
+                      {winnerHistory.slice(1).map((historyWinner, index) => (
+                        <HistoryItem key={index + 1} index={index + 1}>
+                          {historyWinner}
+                        </HistoryItem>
                       ))}
                     </HistoryList>
                   </HistoryDisplay>
                 )}
               </>
             )}
+            {/* Dancing bear overlays the app when showBear is true. It auto-hides after animation via onAnimationEnd. */}
+            <DancingBear
+              visible={showBear}
+              onAnimationEnd={() => setShowBear(false)}
+            />
           </WheelSection>
         )}
       </MainContent>
