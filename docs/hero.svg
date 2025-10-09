@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img"
+    aria-label="Wheel of Names">
+    <style>
+        :root {
+        --bg-start: #f7fafc; /* light */
+        --bg-end: #e6f0f6; /* light */
+        --text: #0f172a; /* slate-900 */
+        --subtext: #334155; /* slate-700 */
+        --ring: rgba(0,0,0,0.08);
+        --glow: rgba(255,255,255,0.6);
+        }
+        @media (prefers-color-scheme: dark) {
+        :root {
+        --bg-start: #0b1220; /* dark */
+        --bg-end: #1f2a3a; /* dark */
+        --text: #e5e7eb; /* gray-200 */
+        --subtext: #cbd5e1; /* slate-300 */
+        --ring: rgba(255,255,255,0.08);
+        --glow: rgba(255,255,255,0.15);
+        }
+        }
+
+        .bg {
+        fill: url(#bgGradient);
+        }
+        .title {
+        font: 800 48px/1.2 -apple-system,BlinkMacSystemFont,"Segoe
+        UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+        fill: var(--text);
+        letter-spacing: -0.02em;
+        }
+        .tagline {
+        font: 500 20px/1.5 -apple-system,BlinkMacSystemFont,"Segoe
+        UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+        fill: var(--subtext);
+        }
+        .card {
+        fill: rgba(255,255,255,0.6);
+        stroke: var(--glow);
+        stroke-width: 1;
+        }
+        @media (prefers-color-scheme: dark) {
+        .card { fill: rgba(255,255,255,0.06); }
+        }
+    </style>
+
+    <defs>
+        <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="var(--bg-start)" />
+            <stop offset="100%" stop-color="var(--bg-end)" />
+        </linearGradient>
+        <linearGradient id="wheel1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4A90E2" />
+            <stop offset="100%" stop-color="#50C878" />
+        </linearGradient>
+        <linearGradient id="wheel2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#50C878" />
+            <stop offset="100%" stop-color="#708090" />
+        </linearGradient>
+        <linearGradient id="wheel3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#708090" />
+            <stop offset="100%" stop-color="#87CEEB" />
+        </linearGradient>
+        <linearGradient id="wheel4" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#87CEEB" />
+            <stop offset="100%" stop-color="#E57373" />
+        </linearGradient>
+        <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="10" stdDeviation="20" flood-opacity="0.15" />
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="1200" height="360" class="bg" />
+
+    <!-- Decorative card glow -->
+    <g filter="url(#softShadow)">
+        <rect x="40" y="36" rx="24" ry="24" width="1120" height="288" class="card" />
+    </g>
+
+    <!-- Wheel illustration -->
+    <g transform="translate(220,180)">
+        <circle cx="0" cy="0" r="110" fill="white" opacity="0.15" />
+        <g stroke="white" stroke-width="2">
+            <path d="M 0 0 L 0 -140 A 140 140 0 0 1 118 -82 Z" fill="url(#wheel1)" />
+            <path d="M 0 0 L 118 -82 A 140 140 0 0 1 140 0 Z" fill="url(#wheel2)" />
+            <path d="M 0 0 L 140 0 A 140 140 0 0 1 118 82 Z" fill="url(#wheel3)" />
+            <path d="M 0 0 L 118 82 A 140 140 0 0 1 0 140 Z" fill="url(#wheel4)" />
+            <path d="M 0 0 L 0 140 A 140 140 0 0 1 -118 82 Z" fill="url(#wheel1)" />
+            <path d="M 0 0 L -118 82 A 140 140 0 0 1 -140 0 Z" fill="url(#wheel2)" />
+            <path d="M 0 0 L -140 0 A 140 140 0 0 1 -118 -82 Z" fill="url(#wheel3)" />
+            <path d="M 0 0 L -118 -82 A 140 140 0 0 1 0 -140 Z" fill="url(#wheel4)" />
+        </g>
+        <circle cx="0" cy="0" r="20" fill="white" stroke="rgba(0,0,0,0.2)" />
+        <circle cx="0" cy="0" r="8" fill="#4A90E2" />
+        <!-- Pointer -->
+        <path d="M 0 -170 L -10 -150 L 10 -150 Z" fill="#E57373" stroke="white" stroke-width="2" />
+    </g>
+
+    <!-- Title and Tagline -->
+    <g transform="translate(420,140)">
+        <text class="title">Wheel of Names</text>
+        <text class="tagline" y="44">Fun, fast, and fair name picking with a beautiful spinning
+            wheel.</text>
+        <text class="tagline" y="72">Installable PWA • Offline-ready • Mobile friendly</text>
+    </g>
+
+</svg>
