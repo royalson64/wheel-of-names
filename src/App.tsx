@@ -63,20 +63,9 @@ const Title = styled.h1<{ isDark: boolean }>`
   margin: 0;
   text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-  animation: titleGlow 3s ease-in-out infinite;
 
   @media (max-width: 768px) {
     font-size: 2rem;
-  }
-
-  @keyframes titleGlow {
-    0%,
-    100% {
-      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-    }
-    50% {
-      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4));
-    }
   }
 `;
 
@@ -825,29 +814,7 @@ function App() {
           </svg>
         </Logo>
         <Title isDark={isDark} aria-label="Wheel of Names">
-          {"Wheel of Names".split("").map((char, i) => {
-            if (char === " ") {
-              return (
-                <span
-                  key={`space-${i}`}
-                  className="title-space"
-                  aria-hidden="true"
-                >
-                  {"\u00A0"}
-                </span>
-              );
-            }
-            return (
-              <span
-                key={i}
-                className="title-char"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                {char}
-                <span className="sparkle" aria-hidden="true" />
-              </span>
-            );
-          })}
+          Wheel of Names
         </Title>
         <ControlsGroup>
           <IconButton
