@@ -98,20 +98,13 @@ const Pointer = styled.div`
   }
 `;
 
-/**
- * Enhanced color palette with blue, grey, green shades and a touch of red
- */
 const colors = [
-  "#4A90E2", // Sky Blue
-  "#50C878", // Emerald Green
-  "#708090", // Slate Grey
-  "#87CEEB", // Sky Blue Light
-  "#2E8B57", // Sea Green
-  "#5F9EA0", // Cadet Blue
-  "#778899", // Light Slate Grey
-  "#E57373", // Soft Red (touch of red)
-  "#6495ED", // Cornflower Blue
-  "#8FBC8F", // Dark Sea Green
+  '#2196F3', // Blue
+  '#FF5722', // Orange
+  '#4CAF50', // Green
+  '#F44336', // Red
+  '#FFC107', // Yellow
+  '#673AB7', // Purple
 ];
 
 const getTextSize = (totalNames: number): number => {
