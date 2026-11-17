@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import "./App.css";
 import Wheel from "./components/Wheel";
 import DancingBear from "./components/DancingBear";
+import { parseNameCountCsv } from "./csv";
+import {
+  clampSelectionCount,
+  createEmptyEntries,
+  expandEntriesToNames,
+  INITIAL_ENTRY_COUNT,
+  MAX_SELECTIONS_PER_NAME,
+  NameEntry,
+} from "./types";
 
 const Container = styled.div<{ isLandscape: boolean; isDark: boolean }>`
   text-align: center;
@@ -352,18 +361,6 @@ const CountButton = styled.button<{ isDark?: boolean }>`
   }
 `;
 
-const InputLabel = styled.span`
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.75rem;
-  font-weight: 600;
-  position: absolute;
-  top: -18px;
-  left: 12px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-`;
-
 const Button = styled.button<{ variant?: "primary" | "spin" }>`
   padding: ${(props) =>
     props.variant === "spin" ? "1rem 2.5rem" : "0.875rem 1.5rem"};
@@ -436,10 +433,34 @@ const Button = styled.button<{ variant?: "primary" | "spin" }>`
   }
 `;
 
-const AddButton = styled(Button)`
+const ActionsRow = styled.div`
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+`;
+
+const AddButton = styled(Button)`
   width: fit-content;
-  margin: 1rem auto 0;
+  margin: 0;
+`;
+
+const CsvHint = styled.p`
+  grid-column: 1 / -1;
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+`;
+
+const CsvError = styled.p`
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  color: #ffcdd2;
+  font-size: 0.85rem;
+  font-weight: 600;
 `;
 
 const WinnerDisplay = styled.div<{ backgroundColor: string }>`
@@ -548,6 +569,9 @@ const HistoryList = styled.div`
   display: flex;
   gap: 0.75rem;
   flex-direction: column;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 `;
 
 const HistoryItem = styled.div<{ index: number }>`
@@ -558,35 +582,105 @@ const HistoryItem = styled.div<{ index: number }>`
       "linear-gradient(135deg, #50C878 0%, #87CEEB 100%)",
       "linear-gradient(135deg, #708090 0%, #4A90E2 100%)",
     ];
-    return colors[props.index] || "rgba(255, 255, 255, 0.2)";
+    return colors[props.index % colors.length];
   }};
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   font-size: 1rem;
   font-weight: 600;
-  opacity: ${(props) => 1 - props.index * 0.15};
-  transform: scale(${(props) => 1 - props.index * 0.03});
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
   &:hover {
-    transform: scale(${(props) => (1 - props.index * 0.03) * 1.05})
-      translateX(4px);
+    transform: translateX(4px);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
   }
 `;
 
-interface NameEntry {
-  name: string;
-  count: number;
+function readFileAsText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () =>
+      reject(reader.error || new Error("Could not read the CSV file."));
+    reader.readAsText(file);
+  });
+}
+
+function NameRow({
+  entry,
+  index,
+  isSpinning,
+  isDark,
+  onNameChange,
+  onCountChange,
+}: {
+  entry: NameEntry;
+  index: number;
+  isSpinning: boolean;
+  isDark: boolean;
+  onNameChange: (index: number, value: string) => void;
+  onCountChange: (index: number, value: number) => void;
+}) {
+  return (
+    <InputWrapper>
+      <InputGroup>
+        <NameInput
+          type="text"
+          value={entry.name}
+          onChange={(e) => onNameChange(index, e.target.value)}
+          placeholder="Enter name"
+          disabled={isSpinning}
+          isDark={isDark}
+        />
+        <CountInputWrapper>
+          <CountInput
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={entry.count}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, "");
+              onCountChange(index, value === "" ? 1 : parseInt(value, 10));
+            }}
+            disabled={isSpinning}
+            isDark={isDark}
+            placeholder="#"
+          />
+          <CountButton
+            className="decrease"
+            onClick={() => onCountChange(index, entry.count - 1)}
+            disabled={entry.count <= 1 || isSpinning}
+            isDark={isDark}
+            aria-label="Decrease count"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13H5v-2h14v2z" />
+            </svg>
+          </CountButton>
+          <CountButton
+            className="increase"
+            onClick={() => onCountChange(index, entry.count + 1)}
+            disabled={entry.count >= MAX_SELECTIONS_PER_NAME || isSpinning}
+            isDark={isDark}
+            aria-label="Increase count"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </CountButton>
+        </CountInputWrapper>
+      </InputGroup>
+    </InputWrapper>
+  );
 }
 
 function App() {
-  const [entries, setEntries] = useState<NameEntry[]>(
-    Array(10).fill({ name: "", count: 1 })
+  const [entries, setEntries] = useState<NameEntry[]>(() =>
+    createEmptyEntries(INITIAL_ENTRY_COUNT)
   );
   const [winner, setWinner] = useState<string | null>(null);
   const [winnerColor, setWinnerColor] = useState<string>("#34a853");
@@ -595,70 +689,75 @@ function App() {
   const [isLandscape, setIsLandscape] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [showBear, setShowBear] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (
-    index: number,
-    field: "name" | "count",
-    value: string
-  ) => {
+  const handleNameChange = (index: number, value: string) => {
     setEntries((prev) =>
-      prev.map((item, i) => {
-        if (i === index) {
-          if (field === "count") {
-            const count = parseInt(value) || 1;
-            return { ...item, count: Math.max(1, Math.min(10, count)) };
-          }
-          return { ...item, [field]: value };
-        }
-        return item;
-      })
+      prev.map((item, i) => (i === index ? { ...item, name: value } : item))
     );
   };
 
   const handleCountChange = (index: number, value: number) => {
     setEntries((prev) =>
-      prev.map((item, i) => {
-        if (i === index) {
-          return { ...item, count: Math.max(1, Math.min(10, value)) };
-        }
-        return item;
-      })
+      prev.map((item, i) =>
+        i === index ? { ...item, count: clampSelectionCount(value) } : item
+      )
     );
   };
 
   const handleAddMoreInputs = () => {
-    if (entries.length < 30) {
-      setEntries((prev) => [
-        ...prev,
-        { name: "", count: 1 },
-        { name: "", count: 1 },
-      ]);
+    setEntries((prev) => [...prev, ...createEmptyEntries(2)]);
+  };
+
+  const handleCsvUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > 512 * 1024) {
+      setCsvError("CSV must be smaller than 512 KB.");
+      return;
+    }
+
+    try {
+      const text = await readFileAsText(file);
+      const result = parseNameCountCsv(text);
+
+      if ("error" in result) {
+        setCsvError(result.error);
+        return;
+      }
+
+      setCsvError(null);
+      setWinner(null);
+      setEntries(result.entries);
+    } catch {
+      setCsvError("Could not read the CSV file.");
     }
   };
 
-  const getValidNames = () => {
-    return entries
-      .filter((entry) => entry.name.trim() !== "")
-      .flatMap((entry) => Array(entry.count).fill(entry.name));
-  };
-
   const handleSpin = () => {
-    const validNames = getValidNames();
-    if (validNames.length < 2) return;
+    if (expandEntriesToNames(entries).length < 2) return;
     setIsSpinning(true);
     setWinner(null);
   };
 
-  const handleSpinComplete = (winner: string, color: string) => {
-    setWinner(winner);
+  const handleSpinComplete = useCallback((nextWinner: string, color: string) => {
+    setWinner(nextWinner);
     setWinnerColor(color);
-    setWinnerHistory((prev) => [winner, ...prev.slice(0, 2)]);
+    setWinnerHistory((prev) => [nextWinner, ...prev]);
     setIsSpinning(false);
-    // Trigger the dancing bear briefly when a winner is selected
     setShowBear(true);
-  };
+  }, []);
 
-  const validNames = getValidNames();
+  const wheelNames = useMemo(() => expandEntriesToNames(entries), [entries]);
+  const canSpin = wheelNames.length >= 2;
 
   return (
     <Container isLandscape={isLandscape} isDark={isDark}>
@@ -864,65 +963,15 @@ function App() {
             {entries
               .slice(0, Math.ceil(entries.length / 2))
               .map((entry, index) => (
-                <InputWrapper key={index}>
-                  <InputGroup>
-                    <NameInput
-                      type="text"
-                      value={entry.name}
-                      onChange={(e) =>
-                        handleInputChange(index, "name", e.target.value)
-                      }
-                      placeholder="Enter name"
-                      disabled={isSpinning}
-                      isDark={isDark}
-                    />
-                    <CountInputWrapper>
-                      <CountInput
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={entry.count}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, "");
-                          if (value === "") {
-                            handleCountChange(index, 1);
-                          } else {
-                            handleCountChange(index, parseInt(value));
-                          }
-                        }}
-                        disabled={isSpinning}
-                        isDark={isDark}
-                        placeholder="#"
-                      />
-                      <CountButton
-                        className="decrease"
-                        onClick={() =>
-                          handleCountChange(index, entry.count - 1)
-                        }
-                        disabled={entry.count <= 1 || isSpinning}
-                        isDark={isDark}
-                        aria-label="Decrease count"
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19 13H5v-2h14v2z" />
-                        </svg>
-                      </CountButton>
-                      <CountButton
-                        className="increase"
-                        onClick={() =>
-                          handleCountChange(index, entry.count + 1)
-                        }
-                        disabled={entry.count >= 10 || isSpinning}
-                        isDark={isDark}
-                        aria-label="Increase count"
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                        </svg>
-                      </CountButton>
-                    </CountInputWrapper>
-                  </InputGroup>
-                </InputWrapper>
+                <NameRow
+                  key={index}
+                  entry={entry}
+                  index={index}
+                  isSpinning={isSpinning}
+                  isDark={isDark}
+                  onNameChange={handleNameChange}
+                  onCountChange={handleCountChange}
+                />
               ))}
           </InputsContainer>
 
@@ -931,96 +980,52 @@ function App() {
           <InputsContainer>
             {entries
               .slice(Math.ceil(entries.length / 2))
-              .map((entry, index) => (
-                <InputWrapper key={index + Math.ceil(entries.length / 2)}>
-                  <InputGroup>
-                    <NameInput
-                      type="text"
-                      value={entry.name}
-                      onChange={(e) =>
-                        handleInputChange(
-                          index + Math.ceil(entries.length / 2),
-                          "name",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Enter name"
-                      disabled={isSpinning}
-                      isDark={isDark}
-                    />
-                    <CountInputWrapper>
-                      <CountInput
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={entry.count}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, "");
-                          if (value === "") {
-                            handleCountChange(
-                              index + Math.ceil(entries.length / 2),
-                              1
-                            );
-                          } else {
-                            handleCountChange(
-                              index + Math.ceil(entries.length / 2),
-                              parseInt(value)
-                            );
-                          }
-                        }}
-                        disabled={isSpinning}
-                        isDark={isDark}
-                        placeholder="#"
-                      />
-                      <CountButton
-                        className="decrease"
-                        onClick={() =>
-                          handleCountChange(
-                            index + Math.ceil(entries.length / 2),
-                            entry.count - 1
-                          )
-                        }
-                        disabled={entry.count <= 1 || isSpinning}
-                        isDark={isDark}
-                        aria-label="Decrease count"
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19 13H5v-2h14v2z" />
-                        </svg>
-                      </CountButton>
-                      <CountButton
-                        className="increase"
-                        onClick={() =>
-                          handleCountChange(
-                            index + Math.ceil(entries.length / 2),
-                            entry.count + 1
-                          )
-                        }
-                        disabled={entry.count >= 10 || isSpinning}
-                        isDark={isDark}
-                        aria-label="Increase count"
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                        </svg>
-                      </CountButton>
-                    </CountInputWrapper>
-                  </InputGroup>
-                </InputWrapper>
-              ))}
+              .map((entry, index) => {
+                const actualIndex = index + Math.ceil(entries.length / 2);
+                return (
+                  <NameRow
+                    key={actualIndex}
+                    entry={entry}
+                    index={actualIndex}
+                    isSpinning={isSpinning}
+                    isDark={isDark}
+                    onNameChange={handleNameChange}
+                    onCountChange={handleCountChange}
+                  />
+                );
+              })}
           </InputsContainer>
 
-          {entries.length < 30 && (
+          <ActionsRow>
             <AddButton onClick={handleAddMoreInputs} disabled={isSpinning}>
               Add More Names
             </AddButton>
-          )}
+            <AddButton
+              type="button"
+              onClick={() => csvInputRef.current?.click()}
+              disabled={isSpinning}
+            >
+              Upload CSV
+            </AddButton>
+            <input
+              ref={csvInputRef}
+              type="file"
+              accept=".csv,text/csv,text/tab-separated-values"
+              onChange={handleCsvUpload}
+              hidden
+              aria-label="Upload CSV of names and counts"
+            />
+          </ActionsRow>
+          <CsvHint>
+            CSV format: two columns, name and count. Header row optional.
+          </CsvHint>
+          {csvError && <CsvError role="alert">{csvError}</CsvError>}
         </InputSection>
 
-        {validNames.length >= 2 && (
+        {canSpin && (
           <WheelSection isLandscape={isLandscape}>
             <Wheel
-              names={validNames}
+              names={wheelNames}
               isSpinning={isSpinning}
               onSpinComplete={handleSpinComplete}
             />
@@ -1029,23 +1034,27 @@ function App() {
             </Button>
 
             {winner && (
-              <>
-                <WinnerDisplay backgroundColor={winnerColor}>
-                  <h2>🎉 Winner: {winner} 🎉</h2>
-                </WinnerDisplay>
-                {winnerHistory.length > 1 && (
-                  <HistoryDisplay>
-                    <HistoryTitle>Previous Winners</HistoryTitle>
-                    <HistoryList>
-                      {winnerHistory.slice(1).map((historyWinner, index) => (
-                        <HistoryItem key={index + 1} index={index + 1}>
-                          {historyWinner}
-                        </HistoryItem>
-                      ))}
-                    </HistoryList>
-                  </HistoryDisplay>
-                )}
-              </>
+              <WinnerDisplay backgroundColor={winnerColor}>
+                <h2>🎉 Winner: {winner} 🎉</h2>
+              </WinnerDisplay>
+            )}
+            {winnerHistory.length > 0 && (
+              <HistoryDisplay>
+                <HistoryTitle>Previous Winners</HistoryTitle>
+                <HistoryList>
+                  {winnerHistory.map((historyWinner, index) => {
+                    const spinNumber = winnerHistory.length - index;
+                    return (
+                      <HistoryItem
+                        key={`${spinNumber}-${historyWinner}`}
+                        index={index}
+                      >
+                        {spinNumber}. {historyWinner}
+                      </HistoryItem>
+                    );
+                  })}
+                </HistoryList>
+              </HistoryDisplay>
             )}
             {/* Dancing bear overlays the app when showBear is true. It auto-hides after animation via onAnimationEnd. */}
             <DancingBear
